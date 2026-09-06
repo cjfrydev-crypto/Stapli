@@ -13,7 +13,7 @@ export default async function HomePage() {
       <section className="hero">
         <div className="hero-copy"><span className="hero-badge">Shopping that remembers</span><h1>The list that already knows what’s running out.</h1><p>Stapli learns what your household buys, how much you usually get, and when it tends to come round again — then helps build the next shop.</p><div className="hero-actions"><Link href="/auth/sign-up" className="button button--primary button--large">Start your household</Link><span>No pantry admin. No scanning what you consume.</span></div></div>
         <div className="hero-phone" aria-label="Stapli shopping list preview">
-          <div className="phone-top"><div><span>Tuesday</span><strong>Tesco</strong></div><span className="live-pill"><span />Shared</span></div></div>
+          <div className="phone-top"><div><span>Tuesday</span><strong>Tesco</strong></div><span className="live-pill"><span />Shared</span></div>
           <div className="phone-progress"><span style={{ width: "42%" }} /></div>
           <div className="phone-category"><span>Fruit & veg</span><small>3</small></div>
           {[["Blueberries", "Rosedene Farms 150g", "1"],["Blackberries", "Rosedene Farms 150g", "1"],["Bananas", "Tesco Small Bananas 6 Pack", "1"]].map(([name, article, qty]) => <div className="phone-item" key={name}><span className="fake-check"/><div><strong>{name}</strong><small>{article}</small></div><b>×{qty}</b></div>)}
