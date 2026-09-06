@@ -1,0 +1,50 @@
+@media (max-width: 800px) {
+  .landing-shell { padding:18px 18px 50px; }
+  .hero { grid-template-columns:1fr;gap:40px;padding:58px 0 45px; }
+  .hero h1 { font-size:52px; }
+  .hero-phone { transform:none;width:min(390px,96%); }
+  .principles { grid-template-columns:1fr; }
+  .page-heading--split,.shop-heading { align-items:flex-start; }
+  .build-shop-card { grid-template-columns:1fr; }
+  .build-shop-form { grid-template-columns:1fr 1fr; }
+  .build-shop-form .button { grid-column:1/-1; }
+  .product-grid { grid-template-columns:1fr; }
+  .quick-add { grid-template-columns:minmax(0,1fr) 64px auto; }
+  .quick-add select { display:none; }
+}
+
+@media (max-width: 560px) {
+  .landing-nav .button--ghost { display:none; }
+  .landing-nav .button { min-height:40px;padding:9px 13px; }
+  .hero { min-height:auto;padding-top:48px; }
+  .hero h1 { font-size:44px; }
+  .hero-copy > p { font-size:17px; }
+  .hero-actions { align-items:flex-start;flex-direction:column; }
+  .hero-actions span { max-width:none; }
+  .app-header { padding:0 16px;height:62px; }
+  .app-main { padding:25px 14px 36px; }
+  .page-stack { gap:24px; }
+  .page-heading h1,.shop-heading h1 { font-size:34px; }
+  .page-heading--split { align-items:flex-start; }
+  .stat-card { min-width:86px;padding:14px; }
+  .stat-card strong { font-size:25px; }
+  .quick-add { grid-template-columns:minmax(0,1fr) 56px; }
+  .quick-add .button { grid-column:1/-1; }
+  .shop-item { grid-template-columns:34px minmax(0,1fr) auto 28px;gap:8px;padding:11px 7px 11px 10px; }
+  .more-button { display:block;width:28px;padding:0; }
+  .quantity-control button { width:27px; }
+  .shop-item__copy strong { font-size:13px; }
+  .source-pill { display:none; }
+  .product-metrics { grid-template-columns:repeat(2,1fr); }
+  .auth-card,.onboarding-card { padding:25px 20px;border-radius:24px; }
+  .form-row { align-items:stretch; }
+  .settings-row { align-items:flex-start; }
+  .history-list > div { grid-template-columns:1fr auto; }
+  .history-list > div > .status-dot { display:none; }
+}
+.invite-success { background:#edf6f0;border:1px solid #d0e5d8;border-radius:15px;padding:15px;color:#2d604b; }
+.invite-success p { margin:4px 0 9px;font-size:12px; }
+.invite-success code { display:block;background:#fff;border:1px solid #dbe9df;border-radius:9px;padding:9px;overflow:auto;font-size:10px;color:var(--ink); }
+.settings-row--stack { align-items:flex-start;flex-direction:column; }
+.invite-form { width:100%;display:grid;grid-template-columns:1fr auto;gap:8px; }
+@media (max-width:560px){.invite-form{grid-template-columns:1fr}.invite-form .button{width:100%}}
