@@ -15,12 +15,18 @@ type Item = {
   source: "manual" | "predicted" | "recipe" | "carry_over" | "imported";
 };
 
+type ShoppingItem = Omit<Item, "actual_quantity"> & { actual_quantity: number };
+
 function cleanQty(value: number) {
   return Math.round(value * 100) / 100;
 }
 
+function normalizeItem(item: Item): ShoppingItem {
+  return { ...item, actual_quantity: item.actual_quantity ?? item.suggested_quantity };
+}
+
 export function ShoppingList({ tripId, initialItems }: { tripId: string; initialItems: Item[] }) {
-  const [items, setItems] = useState(initialItems.map((item) => ({ ...item, actual_quantity: item.actual_quantity ?? item.suggested_quantity })));
+  const [items, setItems] = useState<ShoppingItem[]>(() => initialItems.map(normalizeItem));
   const [expanded, setExpanded] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const supabase = useMemo(() => createClient(), []);
@@ -30,14 +36,21 @@ export function ShoppingList({ tripId, initialItems }: { tripId: string; initial
       .channel(`trip:${tripId}`)
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "trip_items", filter: `trip_id=eq.${tripId}` }, (payload) => {
         const next = payload.new as Partial<Item> & { id: string };
-        setItems((current) => current.map((item) => item.id === next.id ? { ...item, ...next } : item));
+        setItems((current) => current.map((item) => {
+          if (item.id !== next.id) return item;
+          return {
+            ...item,
+            ...next,
+            actual_quantity: next.actual_quantity ?? item.actual_quantity ?? item.suggested_quantity,
+          };
+        }));
       })
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
   }, [supabase, tripId]);
 
   const grouped = useMemo(() => {
-    const map = new Map<string, { order: number; items: typeof items }>();
+    const map = new Map<string, { order: number; items: ShoppingItem[] }>();
     for (const item of items) {
       const group = map.get(item.categoryName) ?? { order: item.categoryOrder, items: [] };
       group.items.push(item);
@@ -48,26 +61,25 @@ export function ShoppingList({ tripId, initialItems }: { tripId: string; initial
 
   const bought = items.filter((item) => item.status === "bought").length;
 
-  function patchLocal(id: string, patch: Partial<Item>) {
+  function patchLocal(id: string, patch: Partial<ShoppingItem>) {
     setItems((current) => current.map((item) => item.id === id ? { ...item, ...patch } : item));
   }
 
-  async function toggleBought(item: (typeof items)[number]) {
+  async function toggleBought(item: ShoppingItem) {
     if (item.status === "bought") {
       patchLocal(item.id, { status: "pending" });
       const { error } = await supabase.rpc("undo_trip_item_bought", { p_item_id: item.id });
       if (error) patchLocal(item.id, { status: "bought" });
       return;
     }
-    const quantity = Number(item.actual_quantity ?? item.suggested_quantity);
+    const quantity = item.actual_quantity;
     patchLocal(item.id, { status: "bought", actual_quantity: quantity });
     const { error } = await supabase.rpc("mark_trip_item_bought", { p_item_id: item.id, p_actual_quantity: quantity });
     if (error) patchLocal(item.id, { status: "pending" });
   }
 
-  function changeQuantity(item: (typeof items)[number], delta: number) {
-    const current = Number(item.actual_quantity ?? item.suggested_quantity);
-    const next = cleanQty(Math.max(1, current + delta));
+  function changeQuantity(item: ShoppingItem, delta: number) {
+    const next = cleanQty(Math.max(1, item.actual_quantity + delta));
     patchLocal(item.id, { actual_quantity: next });
     if (item.status === "bought") {
       startTransition(async () => {
@@ -76,7 +88,7 @@ export function ShoppingList({ tripId, initialItems }: { tripId: string; initial
     }
   }
 
-  async function setOutcome(item: (typeof items)[number], status: "unavailable" | "not_needed" | "deferred") {
+  async function setOutcome(item: ShoppingItem, status: "unavailable" | "not_needed" | "deferred") {
     const previous = item.status;
     patchLocal(item.id, { status });
     setExpanded(null);
@@ -104,7 +116,7 @@ export function ShoppingList({ tripId, initialItems }: { tripId: string; initial
                   </div>
                   <div className="quantity-control" aria-label={`Quantity for ${item.needName}`}>
                     <button disabled={isPending} onClick={() => changeQuantity(item, -1)}>−</button>
-                    <span>{Number(item.actual_quantity ?? item.suggested_quantity)}</span>
+                    <span>{item.actual_quantity}</span>
                     <button disabled={isPending} onClick={() => changeQuantity(item, 1)}>+</button>
                   </div>
                   <button className="more-button" onClick={() => setExpanded(expanded === item.id ? null : item.id)} aria-label={`More options for ${item.needName}`}>•••</button>
