@@ -10,20 +10,27 @@ function value(formData: FormData, key: string) {
 }
 
 function withMessage(path: string, key: string, message: string) {
-  return `${path}?${key}=${encodeURIComponent(message)}`;
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}${key}=${encodeURIComponent(message)}`;
+}
+
+function safeNext(raw: string, fallback: string) {
+  return raw.startsWith("/") && !raw.startsWith("//") ? raw : fallback;
 }
 
 export async function signIn(formData: FormData) {
   const email = value(formData, "email").toLowerCase();
   const password = value(formData, "password");
-  if (!email || !password) redirect(withMessage("/auth/sign-in", "error", "Enter your email and password."));
+  const next = safeNext(value(formData, "next"), "/app");
+  const retryPath = next === "/app" ? "/auth/sign-in" : `/auth/sign-in?next=${encodeURIComponent(next)}`;
+  if (!email || !password) redirect(withMessage(retryPath, "error", "Enter your email and password."));
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) redirect(withMessage("/auth/sign-in", "error", error.message));
+  if (error) redirect(withMessage(retryPath, "error", error.message));
 
   revalidatePath("/", "layout");
-  redirect("/app");
+  redirect(next);
 }
 
 export async function signUp(formData: FormData) {
