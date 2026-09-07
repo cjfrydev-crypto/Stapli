@@ -1,12 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 
-export default async function HomePage() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  if (data?.claims) redirect("/app");
-
+export default function HomePage() {
   return (
     <main className="landing-shell">
       <nav className="landing-nav"><div className="brand"><span className="brand-mark">S</span><span>Stapli</span></div><div><Link href="/auth/sign-in" className="button button--ghost">Sign in</Link><Link href="/auth/sign-up" className="button button--primary">Get started</Link></div></nav>
