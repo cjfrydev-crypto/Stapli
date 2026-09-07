@@ -24,3 +24,17 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
+      - name: Smoke production Supabase config
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          for attempt in {1..12}; do
+            body="$(curl -fsS https://stapli-gray.vercel.app/api/health || true)"
+            echo "Production health: $body"
+            if [[ "$body" == *'"supabaseUrlConfigured":true'* && "$body" == *'"supabasePublishableKeyConfigured":true'* ]]; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Production is missing Stapli's required Supabase public configuration."
+          exit 1
