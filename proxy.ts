@@ -8,6 +8,7 @@ const PUBLIC_PATHS = new Set([
   "/auth/forgot-password",
   "/api/health",
   "/mcp",
+  "/.well-known/oauth-protected-resource",
   "/.well-known/oauth-protected-resource/mcp",
 ]);
 
