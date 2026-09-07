@@ -38,3 +38,20 @@ jobs:
           done
           echo "Production is missing Stapli's required Supabase public configuration."
           exit 1
+      - name: Smoke production MCP OAuth boundary
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          for attempt in {1..12}; do
+            metadata="$(curl -fsS https://stapli-gray.vercel.app/.well-known/oauth-protected-resource/mcp || true)"
+            status="$(curl -sS -o /tmp/mcp-body -w '%{http_code}' -X POST https://stapli-gray.vercel.app/mcp -H 'Content-Type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2026-07-28"}}' || true)"
+            echo "MCP metadata: $metadata"
+            echo "Unauthenticated MCP status: $status"
+            if [[ "$metadata" == *'"resource":"https://stapli-gray.vercel.app/mcp"'* && "$metadata" == *'dyacfwcpaahcubcwxrwh.supabase.co/auth/v1'* && "$status" == '401' ]]; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Production MCP OAuth boundary is not ready."
+          cat /tmp/mcp-body || true
+          exit 1
