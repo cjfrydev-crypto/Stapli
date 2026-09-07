@@ -1,16 +1,17 @@
 import { NextResponse } from "next/server";
+import {
+  SUPABASE_CONFIG_SOURCE,
+  SUPABASE_PUBLISHABLE_KEY,
+  SUPABASE_URL,
+} from "@/lib/supabase/config";
 
 export async function GET() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   let supabaseHost: string | null = null;
 
-  if (supabaseUrl) {
-    try {
-      supabaseHost = new URL(supabaseUrl).host;
-    } catch {
-      supabaseHost = "invalid-url";
-    }
+  try {
+    supabaseHost = new URL(SUPABASE_URL).host;
+  } catch {
+    supabaseHost = "invalid-url";
   }
 
   return NextResponse.json(
@@ -19,9 +20,10 @@ export async function GET() {
       service: "stapli",
       environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "unknown",
       config: {
-        supabaseUrlConfigured: Boolean(supabaseUrl),
-        supabasePublishableKeyConfigured: Boolean(supabaseKey),
+        supabaseUrlConfigured: Boolean(SUPABASE_URL),
+        supabasePublishableKeyConfigured: Boolean(SUPABASE_PUBLISHABLE_KEY),
         supabaseHost,
+        source: SUPABASE_CONFIG_SOURCE,
       },
     },
     {
