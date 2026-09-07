@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { authenticateMcpToken, callStapliTool, TOOL_DEFINITIONS } from "@/lib/mcp/stapli";
+import { authenticateMcpToken, callStapliTool, TOOL_DEFINITIONS } from "@/lib/mcp/service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -56,15 +56,12 @@ async function handleRpc(request: RpcRequest, auth: NonNullable<Awaited<ReturnTy
   if (request.method === "ping") return rpcResult(request.id, {});
   if (request.method === "notifications/initialized" || request.method.startsWith("notifications/")) return null;
 
-  if (request.method === "tools/list") {
-    return rpcResult(request.id, { tools: TOOL_DEFINITIONS });
-  }
+  if (request.method === "tools/list") return rpcResult(request.id, { tools: TOOL_DEFINITIONS });
 
   if (request.method === "tools/call") {
     const name = typeof request.params?.name === "string" ? request.params.name : "";
     if (!name) return rpcError(request.id, -32602, "Tool name is required");
-    const result = await callStapliTool(auth, name, request.params?.arguments);
-    return rpcResult(request.id, result);
+    return rpcResult(request.id, await callStapliTool(auth, name, request.params?.arguments));
   }
 
   return rpcError(request.id, -32601, `Method not found: ${request.method}`);
@@ -88,10 +85,9 @@ export async function POST(request: Request) {
 
   const requests = Array.isArray(body) ? body as RpcRequest[] : [body as RpcRequest];
   const responses = (await Promise.all(requests.map((message) => handleRpc(message, auth)))).filter((response) => response !== null);
-
   if (!responses.length) return new Response(null, { status: 202 });
-  const payload = Array.isArray(body) ? responses : responses[0];
-  return NextResponse.json(payload, {
+
+  return NextResponse.json(Array.isArray(body) ? responses : responses[0], {
     headers: {
       "Cache-Control": "no-store",
       "MCP-Protocol-Version": request.headers.get("mcp-protocol-version") ?? SUPPORTED_PROTOCOLS[0],
