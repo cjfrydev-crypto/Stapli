@@ -7,6 +7,8 @@ const PUBLIC_PATHS = new Set([
   "/auth/sign-up",
   "/auth/forgot-password",
   "/api/health",
+  "/mcp",
+  "/.well-known/oauth-protected-resource/mcp",
 ]);
 
 export async function proxy(request: NextRequest) {
