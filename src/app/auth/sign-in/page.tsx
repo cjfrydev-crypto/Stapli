@@ -3,8 +3,9 @@ import { AuthCard } from "@/components/auth-card";
 import { FormMessage } from "@/components/form-message";
 import { signIn } from "@/app/auth/actions";
 
-export default async function SignInPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string }> }) {
+export default async function SignInPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string; next?: string }> }) {
   const params = await searchParams;
+  const next = params.next?.startsWith("/") && !params.next.startsWith("//") ? params.next : "/app";
   return (
     <AuthCard
       eyebrow="Welcome back"
@@ -14,6 +15,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
     >
       <FormMessage error={params.error} message={params.message} />
       <form action={signIn} className="form-stack">
+        <input type="hidden" name="next" value={next} />
         <label>Email<input name="email" type="email" autoComplete="email" required placeholder="you@example.com" /></label>
         <label>Password<input name="password" type="password" autoComplete="current-password" required /></label>
         <div className="form-row form-row--between"><span /><Link href="/auth/forgot-password" className="text-link">Forgot password?</Link></div>
